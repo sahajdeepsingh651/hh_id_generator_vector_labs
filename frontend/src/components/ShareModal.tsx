@@ -236,10 +236,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       <button
         type="button"
         onClick={handleShareToX}
-        disabled={!shareUrl}
+        disabled={!shareUrl && !(shareFile && navigator.canShare?.({ files: [shareFile] }))}
         className="w-full h-13 py-3 bg-[#FEE101] text-[#026834] border-2 border-[#026834] rounded-2xl font-sans font-extrabold text-base hover:bg-[#ffe833] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center space-x-3 cursor-pointer"
       >
-        {!shareUrl ? (
+        {!shareUrl && !(shareFile && navigator.canShare?.({ files: [shareFile] })) ? (
           <>
             <Loader2 className="w-5 h-5 animate-spin text-[#026834]" />
             <span>Preparing Image...</span>
