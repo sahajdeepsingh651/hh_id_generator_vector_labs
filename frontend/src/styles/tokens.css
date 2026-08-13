@@ -1,0 +1,89 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&family=Rozha+One&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
+:root {
+  /* Exact Color Palette from Reference App */
+  --lp-green: #026834;
+  --lp-green-dark: #014321;
+  --lp-green-deep: #011a0d;
+  --lp-yellow: #FEE101;
+  --lp-pink: #FF007A;
+  --lp-cream: #FFF8EB;
+  --lp-white: #FFFFFF;
+  --color-brand-border: #063725;
+
+  /* Typography */
+  --font-serif: 'Playfair Display', 'Cinzel Decorative', Georgia, serif;
+  --font-deva: 'Rozha One', serif;
+  --font-mono: 'Space Mono', monospace;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background-color: var(--lp-cream);
+  color: var(--lp-green);
+  font-family: var(--font-sans);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Halftone Grid Dot Background */
+.app-main-container {
+  min-height: 100vh;
+  background-color: var(--lp-cream);
+  background-image: radial-gradient(rgba(2, 104, 52, 0.12) 1.5px, transparent 1.5px), radial-gradient(rgba(2, 104, 52, 0.12) 1.5px, var(--lp-cream) 1.5px);
+  background-size: 28px 28px;
+  background-position: 0 0, 14px 14px;
+}
+
+/* Floating Hindi Stamp Styling */
+.goa-hindi-floating {
+  animation: floatUpNDown 5.5s ease-in-out infinite;
+  display: inline-block;
+  will-change: transform;
+}
+
+@keyframes floatUpNDown {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(6deg); }
+}
+
+.goa-hindi-stamp {
+  font-family: var(--font-deva);
+  color: var(--lp-pink);
+  text-shadow: -2px -2px 0 var(--lp-yellow), 2px -2px 0 var(--lp-yellow), -2px 2px 0 var(--lp-yellow), 2px 2px 0 var(--lp-yellow), 0 0 24px rgba(255, 0, 122, 0.9);
+}
+
+/* Patterned Border Button from reference */
+.pattern-border-btn {
+  background-color: var(--lp-yellow);
+  color: var(--lp-green);
+  font-family: var(--font-serif);
+  font-weight: 900;
+  border-style: solid;
+  border-width: 4px;
+  border-color: transparent;
+  border-image: repeating-linear-gradient(45deg, var(--lp-pink), var(--lp-pink) 6px, var(--lp-yellow) 6px, var(--lp-yellow) 12px) 8;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.pattern-border-btn:hover {
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 8px 24px rgba(254, 225, 1, 0.4);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--lp-green);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--lp-green-dark);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--lp-yellow);
+}
