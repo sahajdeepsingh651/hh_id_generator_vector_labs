@@ -25,7 +25,7 @@ const ALLOWED_IMAGE_HOSTS = new Set([
   'res.cloudinary.com',  // cloudinary
 ]);
 
-const APP_URL = 'https://vector-labs-roan.vercel.app';
+const APP_URL = 'https://hh-id-generator-vector-labs.vercel.app';
 const SITE_NAME = 'HH Goa 2026';
 const FALLBACK_IMAGE = `${APP_URL}/assets/hackers.png`;
 
