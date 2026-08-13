@@ -9,6 +9,32 @@ export interface CompositeParams {
   passId?: string;
 }
 
+// Helper function for rounded rectangles with fallback
+function pathRoundRect(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  w: number,
+  h: number,
+  r: number
+) {
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(x, y, w, h, r);
+  } else {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+  }
+}
+
 export function drawCompositeCanvas(
   canvas: HTMLCanvasElement,
   params: CompositeParams
@@ -19,116 +45,149 @@ export function drawCompositeCanvas(
   const WIDTH = 1024;
   const HEIGHT = 1536;
 
-  // Canvas aspect ratio 1024 / 1536 (2:3)
   canvas.width = WIDTH;
   canvas.height = HEIGHT;
 
-  // Exact Palette
-  const COLOR_CREAM = '#FFF8EB';
-  const COLOR_GREEN_DARK = '#026834';
+  // Palette matching Home Page
+  const COLOR_GREEN_BG = '#026834';
+  const COLOR_GREEN_DARK = '#01361B';
+  const COLOR_GREEN_DEEP = '#012010';
   const COLOR_YELLOW = '#FEE101';
   const COLOR_PINK = '#FF007A';
-  const COLOR_RED = '#E52B50';
-  const COLOR_DARK = '#063725';
-  const COLOR_WHITE = '#FFFFFF';
+  const COLOR_CREAM = '#FFF8EB';
 
   const passId = params.passId || `HH-GOA-${Math.floor(1000 + Math.random() * 9000)}`;
 
-  // 1. Background Canvas
-  ctx.fillStyle = COLOR_CREAM;
+  // Generic Placeholders
+  const displayUserName = (params.userName?.trim() || 'YOUR NAME').toUpperCase();
+  const displayRole = (params.stackRole?.trim() || 'BUILDER / DEVELOPER').toUpperCase();
+  const displayTitle = (params.builderTitle?.trim() || 'BUILDER PASS').toUpperCase();
+
+  // ==========================================
+  // 1. BASE BACKGROUND & HOME PAGE ORB GLOWS
+  // ==========================================
+  const bgGrad = ctx.createLinearGradient(0, 0, 0, HEIGHT);
+  bgGrad.addColorStop(0, COLOR_GREEN_BG);
+  bgGrad.addColorStop(0.5, COLOR_GREEN_DARK);
+  bgGrad.addColorStop(1, COLOR_GREEN_DEEP);
+  ctx.fillStyle = bgGrad;
   ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  // Ambient Orbs
+  ctx.save();
+  const topOrb = ctx.createRadialGradient(WIDTH / 2, 200, 20, WIDTH / 2, 200, 520);
+  topOrb.addColorStop(0, 'rgba(254, 225, 1, 0.32)');
+  topOrb.addColorStop(1, 'rgba(254, 225, 1, 0)');
+  ctx.fillStyle = topOrb;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+
+  const bottomOrb = ctx.createRadialGradient(WIDTH / 2, 1320, 20, WIDTH / 2, 1320, 580);
+  bottomOrb.addColorStop(0, 'rgba(255, 0, 122, 0.30)');
+  bottomOrb.addColorStop(1, 'rgba(255, 0, 122, 0)');
+  ctx.fillStyle = bottomOrb;
+  ctx.fillRect(0, 0, WIDTH, HEIGHT);
+  ctx.restore();
+
+  // Halftone Grid Pattern Overlay
+  ctx.fillStyle = 'rgba(254, 225, 1, 0.12)';
+  for (let x = 24; x < WIDTH; x += 32) {
+    for (let y = 24; y < HEIGHT; y += 32) {
+      ctx.beginPath();
+      ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 
   // Outer Border Frame
-  const bw = 32;
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  ctx.fillRect(0, 0, WIDTH, HEIGHT);
-  ctx.fillStyle = COLOR_CREAM;
-  ctx.fillRect(bw, bw, WIDTH - bw * 2, HEIGHT - bw * 2);
+  const bw = 24;
   ctx.lineWidth = 4;
-  ctx.strokeStyle = COLOR_DARK;
+  ctx.strokeStyle = COLOR_YELLOW;
   ctx.strokeRect(bw, bw, WIDTH - bw * 2, HEIGHT - bw * 2);
 
-  // 2. Illustrated Header & Tropical Motifs (Sun, Palms, Goan Cottage, Scooter, Surfboards)
-  // Top Banner
-  const topY = 75;
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  ctx.fillRect(bw + 10, topY, WIDTH - bw * 2 - 20, 110);
+  // Corner Stars
+  ctx.fillStyle = COLOR_YELLOW;
+  ctx.font = '24px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('✦', bw + 18, bw + 32);
+  ctx.fillText('✦', WIDTH - bw - 18, bw + 32);
+  ctx.fillText('✦', bw + 18, HEIGHT - bw - 14);
+  ctx.fillText('✦', WIDTH - bw - 18, HEIGHT - bw - 14);
+
+  // ==========================================
+  // 2. HEADER: HACKER / HOUSE & CENTERED "गोवा"
+  // ==========================================
+  ctx.save();
+  ctx.shadowColor = 'rgba(254, 225, 1, 0.65)';
+  ctx.shadowBlur = 24;
+  ctx.fillStyle = COLOR_YELLOW;
+  ctx.font = '900 80px "Plus Jakarta Sans", "Space Mono", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('HACKER', WIDTH / 2, 90);
+  ctx.fillText('HOUSE', WIDTH / 2, 165);
+  ctx.restore();
+
+  // Floating Hindi Stamp "गोवा"
+  ctx.save();
+  ctx.translate(WIDTH / 2 + 10, 125);
+  ctx.rotate((6 * Math.PI) / 180);
+
+  ctx.shadowColor = 'rgba(255, 0, 122, 0.95)';
+  ctx.shadowBlur = 36;
+  ctx.font = '900 84px "Rozha One", serif';
+  ctx.textAlign = 'center';
+
   ctx.lineWidth = 4;
   ctx.strokeStyle = COLOR_YELLOW;
-  ctx.strokeRect(bw + 10, topY, WIDTH - bw * 2 - 20, 110);
+  ctx.strokeText('गोवा', 0, 0);
 
-  // Title: HACKER GOA HOUSE
-  ctx.fillStyle = COLOR_YELLOW;
-  ctx.font = '900 48px "Playfair Display", "Cinzel Decorative", serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('HACKER HOUSE', WIDTH / 2 - 45, topY + 55);
-
-  // Cursive Hindi "गोवा" Overlay
   ctx.fillStyle = COLOR_PINK;
-  ctx.font = '900 42px "Rozha One", serif';
-  ctx.shadowColor = COLOR_YELLOW;
-  ctx.shadowBlur = 10;
-  ctx.fillText('गोवा', WIDTH / 2 + 195, topY + 50);
-  ctx.shadowBlur = 0;
+  ctx.fillText('गोवा', 0, 0);
+  ctx.restore();
 
-  // Subtitle: Builder Social Card Generator
-  ctx.fillStyle = COLOR_CREAM;
-  ctx.font = '700 20px "Space Mono", monospace';
-  ctx.fillText('BUILDER SOCIAL CARD GENERATOR • 2026', WIDTH / 2, topY + 95);
+  // Subtitle Subbar Pill (Y: 198 to 236)
+  const pillY = 198;
+  const pillW = 700;
+  const pillH = 38;
+  const pillX = (WIDTH - pillW) / 2;
 
-  // Decorative Goan Beach Scene Background
-  const sceneY = 210;
-  ctx.fillStyle = '#FFEAA7';
-  ctx.fillRect(bw + 10, sceneY, WIDTH - bw * 2 - 20, 430);
-
-  // Sun Graphic
-  ctx.fillStyle = COLOR_RED;
-  ctx.beginPath();
-  ctx.arc(WIDTH / 2, sceneY + 120, 75, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Tropical Trees & Cottage Illustration Accents
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  ctx.font = '54px sans-serif';
-  ctx.fillText('🌴', bw + 70, sceneY + 160);
-  ctx.fillText('🌴', WIDTH - bw - 110, sceneY + 160);
-  ctx.fillText('🛵', WIDTH - bw - 180, sceneY + 360);
-  ctx.fillText('🏠', WIDTH - bw - 90, sceneY + 350);
-  ctx.fillText('🏄‍♂️', bw + 80, sceneY + 360);
-  ctx.fillText('⛵', bw + 150, sceneY + 340);
-
-  // Signposts: "SHIP" and "REPEAT"
-  ctx.fillStyle = COLOR_PINK;
-  ctx.fillRect(bw + 40, sceneY + 40, 110, 36);
-  ctx.fillStyle = COLOR_WHITE;
-  ctx.font = '700 18px "Space Mono", monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('SHIP', bw + 95, sceneY + 65);
-
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  ctx.fillRect(bw + 40, sceneY + 86, 110, 36);
-  ctx.fillStyle = COLOR_WHITE;
-  ctx.fillText('REPEAT', bw + 95, sceneY + 111);
-
-  // 3. Photo Window (Circular Cutout with Dashed Yellow/Red Outer Ring)
-  const photoCx = WIDTH / 2;
-  const photoCy = sceneY + 220;
-  const photoRadius = 160;
-
-  // Dashed Ring Outer Border
   ctx.save();
-  ctx.lineWidth = 14;
-  ctx.strokeStyle = COLOR_YELLOW;
-  ctx.setLineDash([20, 14]);
   ctx.beginPath();
-  ctx.arc(photoCx, photoCy, photoRadius + 10, 0, Math.PI * 2);
+  pathRoundRect(ctx, pillX, pillY, pillW, pillH, 19);
+  ctx.fillStyle = 'rgba(1, 18, 8, 0.75)';
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(254, 225, 1, 0.4)';
+  ctx.stroke();
+
+  ctx.fillStyle = COLOR_YELLOW;
+  ctx.font = '700 15px "Space Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('GOA, INDIA • BUILDER PASS 2026', WIDTH / 2, pillY + 24);
+  ctx.restore();
+
+  // ==========================================
+  // 3. IMAGE SPACE: SQUARE WITH CURVED RADIUS (Y: 260 to 700)
+  // ==========================================
+  const imgBoxSize = 440;
+  const imgBoxRadius = 48;
+  const imgBoxX = (WIDTH - imgBoxSize) / 2; // 292
+  const imgBoxY = 260;
+
+  // Outer Ring Border around Curved Square Image Space
+  ctx.save();
+  ctx.shadowColor = 'rgba(254, 225, 1, 0.6)';
+  ctx.shadowBlur = 24;
+  ctx.beginPath();
+  pathRoundRect(ctx, imgBoxX - 6, imgBoxY - 6, imgBoxSize + 12, imgBoxSize + 12, imgBoxRadius + 4);
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = COLOR_YELLOW;
   ctx.stroke();
   ctx.restore();
 
-  // Circular Photo Clipping
+  // Photo Box Clip & Render
   ctx.save();
   ctx.beginPath();
-  ctx.arc(photoCx, photoCy, photoRadius, 0, Math.PI * 2);
+  pathRoundRect(ctx, imgBoxX, imgBoxY, imgBoxSize, imgBoxSize, imgBoxRadius);
   ctx.clip();
 
   if (params.photoImage) {
@@ -137,223 +196,268 @@ export function drawCompositeCanvas(
       ctx.drawImage(
         params.photoImage,
         x, y, width, height,
-        photoCx - photoRadius, photoCy - photoRadius, photoRadius * 2, photoRadius * 2
+        imgBoxX, imgBoxY, imgBoxSize, imgBoxSize
       );
     } else {
       const imgAspect = params.photoImage.width / params.photoImage.height;
-      let renderW = photoRadius * 2;
-      let renderH = photoRadius * 2;
+      let renderW = imgBoxSize;
+      let renderH = imgBoxSize;
       if (imgAspect > 1) {
-        renderW = photoRadius * 2 * imgAspect;
+        renderW = imgBoxSize * imgAspect;
       } else {
-        renderH = (photoRadius * 2) / imgAspect;
+        renderH = imgBoxSize / imgAspect;
       }
       ctx.drawImage(
         params.photoImage,
-        photoCx - renderW / 2, photoCy - renderH / 2, renderW, renderH
+        imgBoxX - (renderW - imgBoxSize) / 2,
+        imgBoxY - (renderH - imgBoxSize) / 2,
+        renderW,
+        renderH
       );
     }
   } else {
-    ctx.fillStyle = '#E6E1D3';
-    ctx.fillRect(photoCx - photoRadius, photoCy - photoRadius, photoRadius * 2, photoRadius * 2);
-    ctx.fillStyle = COLOR_GREEN_DARK;
-    ctx.font = '700 24px "Space Mono", monospace';
+    // Empty Placeholder Fill
+    ctx.fillStyle = 'rgba(1, 32, 17, 0.95)';
+    ctx.fillRect(imgBoxX, imgBoxY, imgBoxSize, imgBoxSize);
+
+    // Vector Glowing Upload Icon (Upward Arrow Tray)
+    const iconCx = WIDTH / 2;
+    const iconCy = imgBoxY + imgBoxSize / 2 - 28;
+
+    ctx.save();
+    ctx.shadowColor = 'rgba(254, 225, 1, 0.85)';
+    ctx.shadowBlur = 22;
+    ctx.strokeStyle = COLOR_YELLOW;
+    ctx.lineWidth = 6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Tray base
+    ctx.beginPath();
+    ctx.moveTo(iconCx - 40, iconCy + 14);
+    ctx.lineTo(iconCx - 40, iconCy + 35);
+    ctx.lineTo(iconCx + 40, iconCy + 35);
+    ctx.lineTo(iconCx + 40, iconCy + 14);
+    ctx.stroke();
+
+    // Upward Stem
+    ctx.beginPath();
+    ctx.moveTo(iconCx, iconCy + 20);
+    ctx.lineTo(iconCx, iconCy - 30);
+    ctx.stroke();
+
+    // Arrow Head
+    ctx.beginPath();
+    ctx.moveTo(iconCx - 24, iconCy - 8);
+    ctx.lineTo(iconCx, iconCy - 30);
+    ctx.lineTo(iconCx + 24, iconCy - 8);
+    ctx.stroke();
+    ctx.restore();
+
+    // Glowing Yellow Upload Text
+    ctx.save();
+    ctx.shadowColor = 'rgba(254, 225, 1, 0.85)';
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = COLOR_YELLOW;
+    ctx.font = '800 26px "Space Mono", monospace';
     ctx.textAlign = 'center';
-    ctx.fillText('UPLOAD PHOTO', photoCx, photoCy);
+    ctx.fillText('UPLOAD PHOTO', WIDTH / 2, imgBoxY + imgBoxSize / 2 + 55);
+    ctx.restore();
   }
   ctx.restore();
 
-  // Solid Inner Ring Stroke
-  ctx.lineWidth = 6;
-  ctx.strokeStyle = COLOR_GREEN_DARK;
-  ctx.beginPath();
-  ctx.arc(photoCx, photoCy, photoRadius + 2, 0, Math.PI * 2);
-  ctx.stroke();
+  // Accent Stars at Corners of Photo Frame
+  ctx.fillStyle = COLOR_PINK;
+  ctx.font = '26px sans-serif';
+  ctx.fillText('✦', imgBoxX - 25, imgBoxY + 12);
+  ctx.fillText('✦', imgBoxX + imgBoxSize + 25, imgBoxY + 12);
 
-  // 4. Name Tag Plaque Banner
-  const nameY = 660;
-  const nameW = 680;
-  const nameH = 80;
+  // ==========================================
+  // 4. OTHER DETAILS: GLOWING PINK (GOA STYLE)
+  // ==========================================
+
+  // --- A. USER NAME BANNER (Y: 725 to 810) ---
+  const nameY = 725;
+  const nameW = 780;
+  const nameH = 85;
   const nameX = (WIDTH - nameW) / 2;
 
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  ctx.fillRect(nameX, nameY, nameW, nameH);
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = COLOR_YELLOW;
-  ctx.strokeRect(nameX, nameY, nameW, nameH);
-
-  // Star Accents
-  ctx.fillStyle = COLOR_YELLOW;
-  ctx.font = '28px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('✦', nameX + 30, nameY + 50);
-  ctx.fillText('✦', nameX + nameW - 30, nameY + 50);
-
-  // Name Text
-  ctx.fillStyle = COLOR_WHITE;
-  ctx.font = '800 42px "Space Mono", monospace';
-  const nameText = (params.userName || 'YOUR NAME').toUpperCase();
-  ctx.fillText(nameText, WIDTH / 2, nameY + 55);
-
-  // 5. Stack / Role Tag Banner
-  const roleY = 760;
-  const roleW = 540;
-  const roleH = 60;
-  const roleX = (WIDTH - roleW) / 2;
-
-  ctx.fillStyle = COLOR_YELLOW;
-  ctx.fillRect(roleX, roleY, roleW, roleH);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = COLOR_GREEN_DARK;
-  ctx.strokeRect(roleX, roleY, roleW, roleH);
-
-  ctx.fillStyle = COLOR_RED;
-  ctx.font = '800 26px "Space Mono", monospace';
-  const roleText = (params.stackRole || 'FRONTEND / UI DESIGNER').toUpperCase();
-  ctx.fillText(`⚡ ${roleText} ⚡`, WIDTH / 2, roleY + 41);
-
-  // 6. 3-Column Stats & Info Grid
-  const gridY = 860;
-  const gridH = 380;
-  const gridW = WIDTH - bw * 2 - 40;
-  const gridX = bw + 20;
-
-  ctx.fillStyle = COLOR_CREAM;
-  ctx.fillRect(gridX, gridY, gridW, gridH);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = COLOR_GREEN_DARK;
-  ctx.strokeRect(gridX, gridY, gridW, gridH);
-
-  // Column Dividers
-  const col1W = 280;
-  const col2W = 340;
+  ctx.save();
   ctx.beginPath();
-  ctx.moveTo(gridX + col1W, gridY);
-  ctx.lineTo(gridX + col1W, gridY + gridH);
-  ctx.moveTo(gridX + col1W + col2W, gridY);
-  ctx.lineTo(gridX + col1W + col2W, gridY + gridH);
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = '#D1CBB9';
+  pathRoundRect(ctx, nameX, nameY, nameW, nameH, 24);
+  ctx.fillStyle = 'rgba(1, 24, 12, 0.88)';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = COLOR_YELLOW;
   ctx.stroke();
 
-  // Column 1: BUILDER CLASS & QR Code
-  ctx.fillStyle = COLOR_RED;
-  ctx.font = '800 18px "Space Mono", monospace';
+  // Stars
+  ctx.fillStyle = COLOR_YELLOW;
+  ctx.font = '30px sans-serif';
   ctx.textAlign = 'center';
-  ctx.fillText('✦ BUILDER CLASS ✦', gridX + col1W / 2, gridY + 40);
+  ctx.fillText('✦', nameX + 38, nameY + 53);
+  ctx.fillText('✦', nameX + nameW - 38, nameY + 53);
 
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  ctx.font = '800 22px "Space Mono", monospace';
-  ctx.fillText((params.builderTitle || 'TERMINAL WIZARD').toUpperCase(), gridX + col1W / 2, gridY + 80);
+  // Name in Glowing Pink
+  ctx.shadowColor = 'rgba(255, 0, 122, 0.95)';
+  ctx.shadowBlur = 30;
+  ctx.fillStyle = COLOR_PINK;
+  ctx.font = '800 44px "Space Mono", monospace';
+  ctx.fillText(displayUserName, WIDTH / 2, nameY + 57);
+  ctx.restore();
 
-  // QR Code Box Representation
-  const qrX = gridX + 50;
-  const qrY = gridY + 120;
-  const qrSize = 180;
-  ctx.fillStyle = COLOR_WHITE;
-  ctx.fillRect(qrX, qrY, qrSize, qrSize);
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = COLOR_GREEN_DARK;
-  ctx.strokeRect(qrX, qrY, qrSize, qrSize);
+  // --- B. ROLE / STACK BADGE (Y: 828 to 884) ---
+  const roleY = 828;
+  const roleW = 700;
+  const roleH = 56;
+  const roleX = (WIDTH - roleW) / 2;
 
-  // Draw QR Modules Pattern
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  for (let r = 0; r < 6; r++) {
-    for (let c = 0; c < 6; c++) {
-      if ((r + c) % 2 === 0 || (r * c) % 3 === 0) {
-        ctx.fillRect(qrX + 15 + c * 25, qrY + 15 + r * 25, 20, 20);
-      }
-    }
-  }
-  // Center Palm Tree in QR
-  ctx.font = '32px sans-serif';
-  ctx.fillText('🌴', qrX + qrSize / 2, qrY + qrSize / 2 + 10);
+  ctx.save();
+  ctx.beginPath();
+  pathRoundRect(ctx, roleX, roleY, roleW, roleH, 28);
+  ctx.fillStyle = 'rgba(255, 0, 122, 0.14)';
+  ctx.fill();
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = 'rgba(255, 0, 122, 0.65)';
+  ctx.stroke();
 
-  // Column 2: BEACH BAG List
-  const col2X = gridX + col1W + col2W / 2;
-  ctx.fillStyle = COLOR_RED;
-  ctx.font = '800 18px "Space Mono", monospace';
-  ctx.fillText('✦ BEACH BAG ✦', col2X, gridY + 40);
+  ctx.shadowColor = 'rgba(255, 0, 122, 0.9)';
+  ctx.shadowBlur = 24;
+  ctx.fillStyle = COLOR_PINK;
+  ctx.font = '800 24px "Space Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`⚡ ${displayRole} ⚡`, WIDTH / 2, roleY + 36);
+  ctx.restore();
 
-  const beachItems = [
-    { icon: '🥥', label: 'COCONUT' },
-    { icon: '💻', label: 'VS CODE' },
-    { icon: '🎧', label: 'LO-FI BEATS' },
-  ];
+  // --- C. BUILDER CLASS / TITLE TAG (Y: 900 to 948) ---
+  const titleY = 900;
+  const titleW = 580;
+  const titleH = 48;
+  const titleX = (WIDTH - titleW) / 2;
 
-  beachItems.forEach((item, i) => {
-    const iy = gridY + 110 + i * 80;
-    ctx.font = '32px sans-serif';
-    ctx.textAlign = 'right';
-    ctx.fillText(item.icon, col2X - 20, iy);
+  ctx.save();
+  ctx.beginPath();
+  pathRoundRect(ctx, titleX, titleY, titleW, titleH, 24);
+  ctx.fillStyle = 'rgba(1, 30, 15, 0.8)';
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'rgba(254, 225, 1, 0.35)';
+  ctx.stroke();
 
-    ctx.fillStyle = COLOR_GREEN_DARK;
-    ctx.font = '800 20px "Space Mono", monospace';
-    ctx.textAlign = 'left';
-    ctx.fillText(item.label, col2X, iy - 6);
+  ctx.shadowColor = 'rgba(255, 0, 122, 0.85)';
+  ctx.shadowBlur = 20;
+  ctx.fillStyle = COLOR_PINK;
+  ctx.font = '800 20px "Space Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`✦ ${displayTitle} ✦`, WIDTH / 2, titleY + 31);
+  ctx.restore();
+
+  // --- D. 4 AUTO-GENERATED TRAITS BADGES (Y: 964 to 1064) ---
+  const defaultTraits = ['Terminal Resident', 'Async Specialist', 'Clean Code Fanatic', 'UI Perfectionist'];
+  const displayTraits = (params.traits && params.traits.length >= 4) ? params.traits.slice(0, 4) : defaultTraits;
+
+  const traitsStartY = 964;
+  const traitPillW = 365;
+  const traitPillH = 44;
+  const traitGapX = 20;
+  const traitGapY = 12;
+
+  const col1X = (WIDTH - (traitPillW * 2 + traitGapX)) / 2; // 137
+  const col2X = col1X + traitPillW + traitGapX; // 522
+
+  displayTraits.forEach((trait, i) => {
+    const row = Math.floor(i / 2);
+    const col = i % 2;
+    const px = col === 0 ? col1X : col2X;
+    const py = traitsStartY + row * (traitPillH + traitGapY);
+
+    ctx.save();
+    ctx.beginPath();
+    pathRoundRect(ctx, px, py, traitPillW, traitPillH, 22);
+    ctx.fillStyle = 'rgba(255, 0, 122, 0.12)';
+    ctx.fill();
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(255, 0, 122, 0.55)';
+    ctx.stroke();
+
+    ctx.shadowColor = 'rgba(255, 0, 122, 0.9)';
+    ctx.shadowBlur = 18;
+    ctx.fillStyle = COLOR_PINK;
+    ctx.font = '800 16px "Space Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText(`✦ ${trait.toUpperCase()}`, px + traitPillW / 2, py + 28);
+    ctx.restore();
   });
 
-  // Column 3: CURRENTLY SHIPPING & Barcode
-  const col3X = gridX + col1W + col2W + (gridW - col1W - col2W) / 2;
-  ctx.fillStyle = COLOR_RED;
-  ctx.font = '800 18px "Space Mono", monospace';
-  ctx.textAlign = 'center';
-  ctx.fillText('✦ CURRENTLY SHIPPING ✦', col3X, gridY + 40);
+  // ==========================================
+  // 5. BARCODE SECTION (Y: 1095 to 1305)
+  // ==========================================
+  const bcContainerY = 1095;
+  const bcContainerH = 210;
+  const bcContainerW = 780;
+  const bcContainerX = (WIDTH - bcContainerW) / 2;
 
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  ctx.font = '800 20px "Space Mono", monospace';
-  ctx.fillText('BUILDING THE', col3X, gridY + 80);
-  ctx.fillText('FUTURE', col3X, gridY + 110);
-
-  ctx.fillStyle = '#718096';
-  ctx.font = '700 16px "Space Mono", monospace';
-  ctx.fillText('BUILDER ID', col3X, gridY + 175);
-
-  ctx.fillStyle = COLOR_GREEN_DARK;
-  ctx.font = '800 22px "Space Mono", monospace';
-  ctx.fillText(`#${passId}`, col3X, gridY + 205);
-
-  // Barcode
-  const bcX = col3X - 90;
-  const bcY = gridY + 230;
-  ctx.fillStyle = COLOR_DARK;
-  for (let b = 0; b < 180; b += 6) {
-    const bw = b % 12 === 0 ? 4 : 2;
-    ctx.fillRect(bcX + b, bcY, bw, 65);
-  }
-
-  // 7. Bottom Pink Hashtag Banner
-  const bannerY = 1270;
-  const bannerH = 70;
-  const bannerW = gridW;
-  const bannerX = gridX;
-
-  ctx.fillStyle = COLOR_PINK;
-  ctx.fillRect(bannerX, bannerY, bannerW, bannerH);
+  ctx.save();
+  ctx.beginPath();
+  pathRoundRect(ctx, bcContainerX, bcContainerY, bcContainerW, bcContainerH, 24);
+  ctx.fillStyle = COLOR_CREAM;
+  ctx.fill();
   ctx.lineWidth = 3;
   ctx.strokeStyle = COLOR_YELLOW;
-  ctx.strokeRect(bannerX, bannerY, bannerW, bannerH);
+  ctx.stroke();
 
-  ctx.fillStyle = COLOR_WHITE;
+  // Builder ID Text
+  ctx.fillStyle = COLOR_GREEN_BG;
+  ctx.font = '800 26px "Space Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText(`BUILDER ID: #${passId}`, WIDTH / 2, bcContainerY + 44);
+
+  // Barcode Render
+  const bcX = WIDTH / 2 - 260;
+  const bcY = bcContainerY + 58;
+  const bcH = 85;
+  ctx.fillStyle = COLOR_GREEN_DEEP;
+
+  // Patterned Barcode Bars
+  for (let b = 0; b < 520; b += 8) {
+    const barWidth = b % 16 === 0 ? 5 : b % 24 === 0 ? 6 : 3;
+    ctx.fillRect(bcX + b, bcY, barWidth, bcH);
+  }
+
+  // Barcode ID subtext
+  ctx.fillStyle = COLOR_GREEN_DARK;
+  ctx.font = '700 16px "Space Mono", monospace';
+  ctx.fillText(`* ${passId} *`, WIDTH / 2, bcContainerY + 178);
+  ctx.restore();
+
+  // ==========================================
+  // 6. BOTTOM HASHTAG BANNER & FOOTER (Y: 1332 to 1462)
+  // ==========================================
+  const bannerY = 1332;
+  const bannerW = 640;
+  const bannerH = 70;
+  const bannerX = (WIDTH - bannerW) / 2;
+
+  ctx.save();
+  ctx.beginPath();
+  pathRoundRect(ctx, bannerX, bannerY, bannerW, bannerH, 35);
+  ctx.fillStyle = 'rgba(255, 0, 122, 0.16)';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = COLOR_PINK;
+  ctx.stroke();
+
+  ctx.shadowColor = 'rgba(255, 0, 122, 0.95)';
+  ctx.shadowBlur = 28;
+  ctx.fillStyle = COLOR_PINK;
   ctx.font = '800 32px "Space Mono", monospace';
   ctx.textAlign = 'center';
   ctx.fillText('✦ #FRAMEINGOA ✦', WIDTH / 2, bannerY + 46);
+  ctx.restore();
 
-  // 8. Footer Badge Pill
-  const footY = 1370;
-  const footW = 540;
-  const footH = 60;
-  const footX = (WIDTH - footW) / 2;
-
-  ctx.beginPath();
-  ctx.roundRect(footX, footY, footW, footH, 30);
+  // Footer Tagline
   ctx.fillStyle = COLOR_YELLOW;
-  ctx.fill();
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = COLOR_GREEN_DARK;
-  ctx.stroke();
-
-  ctx.fillStyle = COLOR_DARK;
-  ctx.font = '800 22px "Space Mono", monospace';
-  ctx.fillText('BUILDER LEVEL: 100%', WIDTH / 2, footY + 38);
+  ctx.font = '700 16px "Space Mono", monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('HH GOA 2026 • 2:47 PM STUDIO', WIDTH / 2, 1462);
 }

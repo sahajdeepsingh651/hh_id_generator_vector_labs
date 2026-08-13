@@ -29,17 +29,14 @@ export const Generator: React.FC = () => {
     setPassId(`HH-GOA-${Math.floor(1000 + Math.random() * 9000)}`);
   }, []);
 
-  // Update title & traits when stackRole changes.
-  // `name` is deliberately NOT a dependency: getTitleAndTraits picks randomly,
-  // so re-running it per keystroke re-rolled the title and traits on every letter typed.
+  // Update title & traits when stackRole changes
   useEffect(() => {
     if (stackRole) {
       const res = getTitleAndTraits(stackRole, name);
       setBuilderTitle(res.builderTitle);
       setTraits(res.traits);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stackRole]);
+  }, [stackRole, name]);
 
   const handleImageSelected = (img: HTMLImageElement) => {
     setImageElement(img);
@@ -65,20 +62,20 @@ export const Generator: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen lg:h-screen lg:max-h-screen lg:overflow-hidden bg-[#FFF8EB] text-[#063725] flex flex-col selection:bg-[#FEE101] selection:text-[#063725]">
+    <div className="min-h-screen lg:h-screen lg:max-h-screen overflow-y-auto lg:overflow-hidden bg-[#FFF8EB] text-[#063725] flex flex-col selection:bg-[#FEE101] selection:text-[#063725]">
       
       {/* App Header */}
-      <header className="w-full bg-[#063725] text-[#FFF8EB] border-b-4 border-[#FEE101] px-6 py-2.5 shrink-0 z-40">
+      <header className="w-full bg-[#063725] text-[#FFF8EB] border-b-4 border-[#FEE101] px-4 sm:px-6 py-2.5 shrink-0 z-40">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Link to="/" className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-full bg-[#FEE101] text-[#063725] flex items-center justify-center font-bold text-base">
+          <Link to="/" className="flex items-center space-x-2.5 sm:space-x-3">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-[#FEE101] text-[#063725] flex items-center justify-center font-bold text-sm sm:text-base shrink-0">
               🌴
             </div>
             <div>
-              <div className="font-sans font-black text-base text-[#FEE101] tracking-wider leading-tight">
+              <div className="font-sans font-black text-sm sm:text-base text-[#FEE101] tracking-wider leading-tight">
                 HACKER GOA HOUSE
               </div>
-              <div className="font-sans text-[10px] text-white/80">
+              <div className="font-sans text-[9px] sm:text-[10px] text-white/80">
                 Builder Social Card Generator
               </div>
             </div>
@@ -86,23 +83,23 @@ export const Generator: React.FC = () => {
 
           <Link
             to="/"
-            className="font-mono text-xs text-[#FEE101] hover:text-white flex items-center space-x-1"
+            className="font-mono text-xs text-[#FEE101] hover:text-white flex items-center space-x-1 py-1 px-2.5 bg-white/10 rounded-lg hover:bg-white/20 transition-colors"
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             <span>HOME</span>
           </Link>
         </div>
       </header>
 
-      {/* Generator Body: Perfectly aligned 2-column layout with 0 shadows */}
-      <main className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 py-4 lg:h-[calc(100vh-60px)] lg:overflow-hidden flex items-center justify-center">
+      {/* Generator Body: Responsive Grid with smooth scrolling on mobile */}
+      <main className="flex-1 min-h-[calc(100vh-60px)] lg:h-[calc(100vh-60px)] max-w-7xl w-full mx-auto px-3 sm:px-6 py-3 sm:py-4 overflow-y-auto lg:overflow-hidden flex items-center justify-center">
         
         {step < 4 ? (
-          /* Steps 1, 2, 3 Grid Layout: Pass Card on LEFT, Form Controls on RIGHT */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-center lg:max-h-[calc(100vh-120px)] lg:overflow-hidden">
+          /* Steps 1, 2, 3 Grid Layout: Responsive 1-col on mobile, 12-col on desktop */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 w-full min-h-full lg:max-h-[calc(100vh-110px)] items-center overflow-visible lg:overflow-hidden py-2 lg:py-0">
             
             {/* Left Side: Interactive Pass Card Preview */}
-            <div className="lg:col-span-6 flex items-center justify-center lg:h-full lg:overflow-hidden">
+            <div className="lg:col-span-6 w-full h-auto lg:h-full flex items-center justify-center overflow-visible lg:overflow-hidden shrink-0">
               <FramePreview
                 imageElement={imageElement}
                 cropAreaPixels={cropAreaPixels}
@@ -115,15 +112,15 @@ export const Generator: React.FC = () => {
               />
             </div>
 
-            {/* Right Side: Form Controls (No shadow, matching border and vertical centering) */}
-            <div className="lg:col-span-6 flex flex-col justify-center lg:h-full lg:overflow-hidden">
+            {/* Right Side: Form Controls */}
+            <div className="lg:col-span-6 w-full h-auto lg:h-full flex flex-col justify-center overflow-visible lg:overflow-hidden">
               {step === 1 && (
-                <div className="bg-white p-6 rounded-3xl border-4 border-[#063725] flex flex-col justify-between lg:h-full lg:max-h-[calc(100vh-130px)] lg:overflow-hidden">
+                <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-3 sm:border-4 border-[#063725] w-full h-auto lg:h-full max-h-none lg:max-h-[calc(100vh-130px)] flex flex-col justify-between overflow-y-auto space-y-4">
                   <div className="text-center space-y-1">
-                    <h2 className="font-sans font-black text-xl text-[#063725]">
+                    <h2 className="font-sans font-black text-lg sm:text-xl text-[#063725]">
                       Upload Your Photo
                     </h2>
-                    <p className="font-sans text-xs text-gray-600">
+                    <p className="font-sans text-[11px] sm:text-xs text-gray-600">
                       Supports JPG, PNG, WEBP, and iPhone HEIC photos
                     </p>
                   </div>
@@ -134,7 +131,7 @@ export const Generator: React.FC = () => {
               )}
 
               {step === 2 && imageElement && (
-                <div className="bg-white p-6 rounded-3xl border-4 border-[#063725] flex flex-col justify-between lg:h-full lg:max-h-[calc(100vh-130px)] lg:overflow-hidden">
+                <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-3 sm:border-4 border-[#063725] w-full h-auto lg:h-full max-h-none lg:max-h-[calc(100vh-130px)] flex flex-col justify-between overflow-y-auto space-y-3">
                   <div className="flex-1 flex flex-col justify-center space-y-3">
                     <CropStep
                       imageSrc={imageElement.src}
@@ -144,7 +141,7 @@ export const Generator: React.FC = () => {
                   </div>
                   <button
                     onClick={() => setStep(3)}
-                    className="w-full py-3.5 bg-[#063725] text-[#FEE101] border-2 border-[#063725] rounded-xl font-sans font-extrabold text-sm hover:bg-[#0a4f36] flex items-center justify-center space-x-2 shrink-0 mt-2"
+                    className="w-full py-3 sm:py-3.5 bg-[#063725] text-[#FEE101] border-2 border-[#063725] rounded-xl font-sans font-extrabold text-xs sm:text-sm hover:bg-[#0a4f36] flex items-center justify-center space-x-2 shrink-0 mt-2 active:scale-98 transition-transform"
                   >
                     <span>Next: Enter Name & Role</span>
                     <Sparkles className="w-4 h-4 text-[#FEE101]" />
@@ -153,7 +150,7 @@ export const Generator: React.FC = () => {
               )}
 
               {step === 3 && (
-                <div className="bg-white p-6 rounded-3xl border-4 border-[#063725] flex flex-col justify-between lg:h-full lg:max-h-[calc(100vh-130px)] lg:overflow-hidden">
+                <div className="bg-white p-4 sm:p-6 rounded-2xl sm:rounded-3xl border-3 sm:border-4 border-[#063725] w-full h-auto lg:h-full max-h-none lg:max-h-[calc(100vh-130px)] flex flex-col justify-between overflow-y-auto space-y-3">
                   <div className="flex-1 flex flex-col justify-center my-auto">
                     <DetailsForm
                       name={name}
@@ -169,7 +166,7 @@ export const Generator: React.FC = () => {
                   <button
                     onClick={handleGenerateFinal}
                     disabled={!name.trim()}
-                    className={`w-full py-3.5 rounded-xl font-sans font-extrabold text-sm flex items-center justify-center space-x-2 transition-all shrink-0 mt-2 ${
+                    className={`w-full py-3 sm:py-3.5 rounded-xl font-sans font-extrabold text-xs sm:text-sm flex items-center justify-center space-x-2 transition-all shrink-0 mt-2 active:scale-98 ${
                       name.trim()
                         ? 'bg-[#063725] text-[#FEE101] hover:bg-[#0a4f36] cursor-pointer'
                         : 'bg-gray-300 text-gray-500 cursor-not-allowed'
@@ -184,11 +181,11 @@ export const Generator: React.FC = () => {
 
           </div>
         ) : (
-          /* Step 4 Final Pass View Layout: Pass Card on LEFT (col-span-7), Vertical Buttons Box on RIGHT (col-span-5) */
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 w-full items-center lg:max-h-[calc(100vh-120px)] lg:overflow-hidden">
+          /* Step 4 Final Pass View Layout */
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 w-full min-h-full lg:max-h-[calc(100vh-110px)] items-center overflow-visible lg:overflow-hidden py-2 lg:py-0">
             
             {/* Left Side: Pass Card Preview */}
-            <div className="lg:col-span-7 flex items-center justify-center lg:h-full lg:overflow-hidden">
+            <div className="lg:col-span-7 w-full h-auto lg:h-full flex items-center justify-center overflow-visible lg:overflow-hidden">
               <FramePreview
                 imageElement={imageElement}
                 cropAreaPixels={cropAreaPixels}
@@ -201,13 +198,13 @@ export const Generator: React.FC = () => {
               />
             </div>
 
-            {/* Right Side: Vertical Action Buttons Box (No Shadow, matching border) */}
-            <div className="lg:col-span-5 bg-white p-6 sm:p-8 rounded-3xl border-4 border-[#063725] flex flex-col justify-between items-center gap-6 lg:gap-0 lg:h-full lg:max-h-[calc(100vh-130px)] lg:overflow-hidden">
+            {/* Right Side: Action Buttons Box */}
+            <div className="lg:col-span-5 bg-white p-5 sm:p-8 rounded-2xl sm:rounded-3xl border-3 sm:border-4 border-[#063725] w-full h-auto lg:h-full max-h-none lg:max-h-[calc(100vh-130px)] flex flex-col justify-between items-center overflow-y-auto space-y-4 lg:space-y-0">
               <div className="text-center space-y-2 my-auto">
                 <span className="inline-block px-3.5 py-1 bg-[#E6F4EA] text-[#2E7D32] border border-[#2E7D32] rounded-full font-sans font-bold text-xs">
                   ✓ PASS CREATED
                 </span>
-                <h3 className="font-sans font-extrabold text-3xl text-[#063725]">
+                <h3 className="font-sans font-extrabold text-2xl sm:text-3xl text-[#063725]">
                   Your Pass is Ready!
                 </h3>
                 <p className="font-sans text-xs text-gray-600 max-w-xs mx-auto">

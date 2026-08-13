@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { Upload, AlertCircle, Loader2 } from 'lucide-react';
+import heic2any from 'heic2any';
 
 interface UploadStepProps {
   onImageSelected: (imageElement: HTMLImageElement, file: File) => void;
@@ -21,12 +22,11 @@ export const UploadStep: React.FC<UploadStepProps> = ({ onImageSelected }) => {
       // Handle HEIC/HEIF files from iPhones
       const isHeic = file.name.toLowerCase().endsWith('.heic') || file.name.toLowerCase().endsWith('.heif');
       if (isHeic) {
-        const heic2any = (await import('heic2any')).default;
         const convertedBlob = await heic2any({
           blob: file,
           toType: 'image/jpeg',
-          quality: 0.8
-        }) as Blob;
+          quality: 0.9,
+        });
 
         const blobResult = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
         targetFile = new File([blobResult], file.name.replace(/\.(heic|heif)$/i, '.jpg'), {
