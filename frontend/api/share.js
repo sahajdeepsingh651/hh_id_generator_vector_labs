@@ -23,6 +23,7 @@
 const ALLOWED_IMAGE_HOSTS = new Set([
   'i.ibb.co',            // imgbb
   'res.cloudinary.com',  // cloudinary
+  'files.catbox.moe',    // catbox
 ]);
 
 const APP_URL = 'https://hh-id-generator-vector-labs.vercel.app';

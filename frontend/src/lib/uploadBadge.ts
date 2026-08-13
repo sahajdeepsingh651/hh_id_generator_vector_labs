@@ -43,25 +43,23 @@ function fileToBase64(file: File): Promise<string> {
  * never block the user from sharing.
  */
 export async function uploadBadge(file: File): Promise<string | null> {
-  if (!IMGBB_KEY) return null;
-
   try {
     const form = new FormData();
-    form.append('image', await fileToBase64(file));
+    form.append('reqtype', 'fileupload');
+    form.append('fileToUpload', file);
 
-    const response = await fetch(
-      `https://api.imgbb.com/1/upload?key=${encodeURIComponent(IMGBB_KEY)}`,
-      { method: 'POST', body: form }
-    );
+    const response = await fetch('https://catbox.moe/user/api.php', {
+      method: 'POST',
+      body: form
+    });
 
     if (!response.ok) {
       console.warn('Badge upload failed:', response.status);
       return null;
     }
 
-    const json = await response.json();
-    const url: unknown = json?.data?.url ?? json?.data?.display_url;
-    return typeof url === 'string' ? url : null;
+    const url = await response.text();
+    return url.startsWith('http') ? url : null;
   } catch (error) {
     console.warn('Badge upload error:', error);
     return null;
