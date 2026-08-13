@@ -76,21 +76,57 @@ export const ShareModal: React.FC<ShareModalProps> = ({
   // time they click, the URL is normally ready — and the click handler stays
   // synchronous, which navigator.share() and window.open() both require.
   useEffect(() => {
-    if (!shareFile) return;
+    if (!canvasElement) return;
     let cancelled = false;
 
-    uploadBadge(shareFile).then((imageUrl) => {
-      if (cancelled || !imageUrl) return;
-      // Single opaque parameter: X's composer corrupts query params that contain
-      // anything domain-shaped. See src/lib/sharePayload.ts.
-      const token = encodeSharePayload({ img: imageUrl, name, title: builderTitle });
-      setShareUrl(`${window.location.origin}/api/share?d=${token}`);
-    });
+    // Twitter Link Previews are wide (1200x630). Because the badge is vertical,
+    // Twitter will crop off the top and bottom. We create a landscape canvas
+    // right here and paste the badge in the center so it never looks cropped!
+    const ogCanvas = document.createElement('canvas');
+    ogCanvas.width = 1200;
+    ogCanvas.height = 630;
+    const ctx = ogCanvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#FFF8EB'; // Matching background cream color
+      ctx.fillRect(0, 0, 1200, 630);
+      
+      // Calculate scaled dimensions to fit height 590 (padding 20px top/bottom)
+      // canvasElement is inherently 1024x1536 from canvasCompositor
+      const scale = 590 / 1536; 
+      const drawW = 1024 * scale;
+      const drawH = 1536 * scale;
+      const drawX = (1200 - drawW) / 2;
+      const drawY = (630 - drawH) / 2;
+      
+      // Add a subtle drop shadow
+      ctx.shadowColor = 'rgba(6, 55, 37, 0.2)'; // Dark green shadow
+      ctx.shadowBlur = 30;
+      ctx.shadowOffsetY = 10;
+      ctx.fillRect(drawX, drawY, drawW, drawH);
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetY = 0;
+      
+      // Draw the vertical badge in the center of the landscape frame
+      ctx.drawImage(canvasElement, drawX, drawY, drawW, drawH);
+      
+      ogCanvas.toBlob((blob) => {
+        if (cancelled || !blob) return;
+        const ogFile = new File([blob], 'og-image.png', { type: 'image/png' });
+        
+        // Upload the beautiful landscape version to ImgBB
+        uploadBadge(ogFile).then((imageUrl) => {
+          if (cancelled || !imageUrl) return;
+          // Single opaque parameter to prevent X's composer from linkifying
+          const token = encodeSharePayload({ img: imageUrl, name, title: builderTitle });
+          setShareUrl(`${window.location.origin}/api/share?d=${token}`);
+        });
+      }, 'image/png');
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [shareFile, name, builderTitle]);
+  }, [canvasElement, name, builderTitle]);
 
   const triggerConfetti = () => {
     confetti({
