@@ -196,21 +196,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({
 
   const handleShareToX = () => {
     const caption = buildCaption();
-
-    // Mobile path: hand the actual PNG to the OS share sheet, which passes it to
-    // the X app as a genuine attachment. No server, no URL, no crawler involved.
-    if (shareFile && navigator.canShare?.({ files: [shareFile] })) {
-      navigator
-        .share({ files: [shareFile], text: caption })
-        .then(triggerConfetti)
-        .catch((err: unknown) => {
-          // User dismissed the sheet — not an error, and not a reason to fall back.
-          if (err instanceof DOMException && err.name === 'AbortError') return;
-          shareViaIntent(caption);
-        });
-      return;
-    }
-
     shareViaIntent(caption);
   };
 
@@ -236,10 +221,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       <button
         type="button"
         onClick={handleShareToX}
-        disabled={!shareUrl && !(shareFile && navigator.canShare?.({ files: [shareFile] }))}
+        disabled={!shareUrl}
         className="w-full h-13 py-3 bg-[#FEE101] text-[#026834] border-2 border-[#026834] rounded-2xl font-sans font-extrabold text-base hover:bg-[#ffe833] active:scale-95 disabled:opacity-50 transition-all flex items-center justify-center space-x-3 cursor-pointer"
       >
-        {!shareUrl && !(shareFile && navigator.canShare?.({ files: [shareFile] })) ? (
+        {!shareUrl ? (
           <>
             <Loader2 className="w-5 h-5 animate-spin text-[#026834]" />
             <span>Preparing Image...</span>
