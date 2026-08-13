@@ -19,10 +19,9 @@ export default async function handler(req, res) {
     const blob = new Blob([buffer], { type: 'image/png' });
     
     const form = new FormData();
-    form.append('reqtype', 'fileupload');
-    form.append('fileToUpload', blob, 'image.png');
+    form.append('files[]', blob, 'image.png');
 
-    const response = await fetch('https://catbox.moe/user/api.php', {
+    const response = await fetch('https://uguu.se/upload.php', {
       method: 'POST',
       body: form
     });
@@ -31,8 +30,12 @@ export default async function handler(req, res) {
       return res.status(response.status).send('Upload failed');
     }
 
-    const url = await response.text();
-    return res.status(200).json({ url });
+    const json = await response.json();
+    if (!json.success || !json.files || !json.files[0].url) {
+      return res.status(500).send('Invalid response from uguu');
+    }
+
+    return res.status(200).json({ url: json.files[0].url });
   } catch (error) {
     return res.status(500).json({ error: error.message });
   }

@@ -24,6 +24,8 @@ const ALLOWED_IMAGE_HOSTS = new Set([
   'i.ibb.co',            // imgbb
   'res.cloudinary.com',  // cloudinary
   'files.catbox.moe',    // catbox
+  'a.uguu.se',           // uguu a
+  'd.uguu.se',           // uguu d
 ]);
 
 const APP_URL = 'https://hh-id-generator-vector-labs.vercel.app';
@@ -60,7 +62,7 @@ function safeImageUrl(raw) {
     return null;
   }
   if (parsed.protocol !== 'https:') return null;
-  if (!ALLOWED_IMAGE_HOSTS.has(parsed.hostname)) return null;
+  if (!ALLOWED_IMAGE_HOSTS.has(parsed.hostname) && !parsed.hostname.endsWith('.uguu.se')) return null;
   return parsed.toString();
 }
 
