@@ -16,25 +16,10 @@
  * Rotate it if it gets hammered.
  */
 
-const IMGBB_KEY = import.meta.env.VITE_IMGBB_KEY as string | undefined;
-
 /** Whether a share link with a working preview is possible at all. */
-export const canUploadBadge = Boolean(IMGBB_KEY);
+export const canUploadBadge = true;
 
-function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result);
-      // readAsDataURL yields "data:image/png;base64,AAAA..." — imgbb wants only
-      // the payload after the comma.
-      const comma = result.indexOf(',');
-      resolve(comma >= 0 ? result.slice(comma + 1) : result);
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
-  });
-}
+
 
 /**
  * Upload the badge and return its public URL, or null if it could not be
