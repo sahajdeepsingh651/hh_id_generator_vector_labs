@@ -192,8 +192,6 @@ export const ShareModal: React.FC<ShareModalProps> = ({
       '_blank',
       'noopener,noreferrer'
     );
-
-    saveToDisk();
   };
 
   const handleShareToX = () => {
