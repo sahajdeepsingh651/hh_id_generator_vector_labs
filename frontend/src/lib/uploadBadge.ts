@@ -29,22 +29,27 @@ export const canUploadBadge = true;
  */
 export async function uploadBadge(file: File): Promise<string | null> {
   try {
-    const form = new FormData();
-    form.append('reqtype', 'fileupload');
-    form.append('fileToUpload', file);
+    // Convert file to base64
+    const base64 = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
-    const response = await fetch('https://catbox.moe/user/api.php', {
+    const response = await fetch('/api/upload', {
       method: 'POST',
-      body: form
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ imageBase64: base64 })
     });
 
     if (!response.ok) {
-      console.warn('Badge upload failed:', response.status);
+      console.warn('Badge upload proxy failed:', response.status);
       return null;
     }
 
-    const url = await response.text();
-    return url.startsWith('http') ? url : null;
+    const json = await response.json();
+    return typeof json.url === 'string' ? json.url : null;
   } catch (error) {
     console.warn('Badge upload error:', error);
     return null;
